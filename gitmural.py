@@ -8,9 +8,10 @@ output = "output.txt"
 def get_user_input():
     string = input("Enter the string to print on GitHub contribution graph: ").strip()
     start_date = input("Enter the start date (YYYY-MM-DD) or leave empty for today: ").strip()
+    intensity = int(input("Enter intensity (commits per day): "))
     if not start_date:
         start_date = str(date.today())
-    return string, start_date
+    return string, start_date, intensity
 
 
 def print_to_file(filename: str, string: str):
@@ -32,7 +33,7 @@ def create_string_bitmap(string: str):
     return hash_string
 
 
-def create_commits(bitmap, start_date):
+def create_commits(bitmap, start_date, intensity):
     start = datetime.strptime(start_date, "%Y-%m-%d")
 
     for week in range(len(bitmap[0])):
@@ -42,27 +43,27 @@ def create_commits(bitmap, start_date):
                 commit_date_str = commit_date.strftime("%Y-%m-%d 12:00:00")
 
                 # Change a file to have something to commit
-                
-                with open("placeHolder.txt", "a") as file:
-                    f.write(f"{commit_date_str}")
+                placeholder_file = "placeHolder.txt"
+                with open(placeholder_file, "a") as file:
+                    file.write(f"{commit_date_str} ")
 
                 env = os.environ.copy()
                 env["GIT_AUTHOR_DATE"] = commit_date_str
                 env["GIT_COMMITTER_DATE"] = commit_date_str
 
-                subprocess.run(["git", "add", dummy_file], cwd=repo_path, check=True)
-                subprocess.run(
-                    ["git", "commit", "-m", f"Commit for {commit_date_str}"],
-                    cwd=repo_path,
-                    check=True,
-                    env=env
-                )
+                for _ in range(intensity):
+                    subprocess.run(["git", "add", placeholder_file], check=True)
+                    subprocess.run  (
+                        ["git", "commit", "--allow-empty", "-m", f"Commit for {commit_date_str}"],
+                        check=  True,
+                        env=env
+                    )
 
     print("Created all commits")
 
 
 if __name__ == "__main__":
-    string, start_date = get_user_input()
+    string, start_date, intensity = get_user_input()
     print(f"\nCreating bitmap for string '{string}'")
     bitmap = create_string_bitmap(string)
 
@@ -75,4 +76,4 @@ if __name__ == "__main__":
     print("\nBitmap saved to output.txt")
 
     print(f"\nStart date is {start_date}")
-    create_commits(bitmap, start_date)
+    create_commits(bitmap, start_date, intensity)
