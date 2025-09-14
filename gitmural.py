@@ -1,4 +1,6 @@
-from datetime import date
+import os
+import subprocess
+from datetime import datetime, timedelta
 from letter_map import LETTER_MAP
 
 output = "output.txt"
@@ -31,11 +33,32 @@ def create_string_bitmap(string: str):
 
 
 def create_commits(bitmap, start_date):
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+
     for week in range(len(bitmap[0])):
         for day in range(len(bitmap)):
             if bitmap[day][week] == "#":
-                # Replace with actual commit code later
-                print(f"commit on day:{day} week:{week}")
+                commit_date = start + timedelta(days=week*7+day)
+                commit_date_str = commit_date.strftime("%Y-%m-%d 12:00:00")
+
+                # Change a file to have something to commit
+                
+                with open("placeHolder.txt", "a") as file:
+                    f.write(f"{commit_date_str}")
+
+                env = os.environ.copy()
+                env["GIT_AUTHOR_DATE"] = commit_date_str
+                env["GIT_COMMITTER_DATE"] = commit_date_str
+
+                subprocess.run(["git", "add", dummy_file], cwd=repo_path, check=True)
+                subprocess.run(
+                    ["git", "commit", "-m", f"Commit for {commit_date_str}"],
+                    cwd=repo_path,
+                    check=True,
+                    env=env
+                )
+
+    print("Created all commits")
 
 
 if __name__ == "__main__":
